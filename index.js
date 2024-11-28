@@ -47,15 +47,20 @@ app.post('/api/persons', (request, response) => {
   if (!name || !number) {
     response.status(400).json({ error: 'name and number are required' })
   }
-  const exists = persons.find(person => person.name === name)
-  if (exists) {
-    response.status(400).json({ error: 'name must be unique' })
-  }
-  const newId = String(Math.floor(Math.random() * 99999999999))
-  const newPerson = { name, number, id: newId }
-  persons = persons.concat(newPerson)
 
-  response.status(201).json(newPerson)
+  Person.find({ name }).then(persons => {
+    if (persons.length > 0) {
+      response.status(400).json({ error: 'name must be unique' })
+    } else {
+      const newPerson = Person({
+        name,
+        number
+      })
+      newPerson.save().then(person => {
+        response.json(person)
+      })
+    }
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
